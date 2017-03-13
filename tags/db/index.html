@@ -1,152 +1,92 @@
 <!DOCTYPE html>
 <html lang="en-us">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta content="" name="keywords">
-<meta content="Db - Stein&#39;s World" property="og:title">
-<title>Db | Stein&#39;s World</title>
-<link rel="stylesheet" href="https://steinliber.github.io/css/style.css">
-<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/github.min.css">
+<head>
+  <title> Db &middot; Stein&#39;s World </title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="generator" content="Hugo 0.19" />
 
 
-<section class="section">
-  <div class="container">
-    <nav class="nav">
-      <div class="nav-left">
-        <a class="nav-item" href="https://steinliber.github.io"><h1 class="title is-4">Stein&#39;s World</h1></a>
-      </div>
-      <div class="nav-right">
-        <nav class="nav-item level is-mobile">
-          
-          <a class="level-item" href="https://github.com/steinliber">
-            <span class="icon">
-              <i class="fa fa-github"></i>
-            </span>
-          </a>
-          
-          <a class="level-item" href="https://gitlab.com/steinliber">
-            <span class="icon">
-              <i class="fa fa-gitlab"></i>
-            </span>
-          </a>
-          
-          <a class="level-item" href="https://twitter.com/steinliber">
-            <span class="icon">
-              <i class="fa fa-twitter"></i>
-            </span>
-          </a>
-          
-          <a class="level-item" href="https://telegram.me/steinliber">
-            <span class="icon">
-              <i class="fa fa-telegram"></i>
-            </span>
-          </a>
-          
-          <a class="level-item" href="/index.xml">
-            <span class="icon">
-              <i class="fa fa-rss"></i>
-            </span>
-          </a>
-          
-        </nav>
-      </div>
-    </nav>
-  </div>
-</section>
+<link rel="stylesheet" href="https://steinliber.github.io/css/vec.css">
 
-<section class="section">
-  <div class="container">
-    
-    <article>
-      <h2 class="subtitle is-6">January 1, 0001</h2>
-      <h1 class="title"><a href="https://steinliber.github.io/online-migrations/">在线进行大规模的数据迁移[译]</a></h1>
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+<link rel="shortcut icon" href="/favicon.ico">
+
+
+<link href="https://steinliber.github.io/tags/db/index.xml" rel="alternate" type="application/rss+xml" title="Stein&#39;s World" />
+
+</head>
+
+<body>
+  
+  <header>
+  <nav>
+    <ul>
       
-        <div class="tags">
-    
-        <a class="button is-link" href="/tags/translate">translate</a>
-    
-        <a class="button is-link" href="/tags/backend">backend</a>
-    
-        <a class="button is-link" href="/tags/db">db</a>
-    
+      
+      <li class="pull-left ">
+        <a href="https://steinliber.github.io">/home/stein&#39;s world</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/about">~/about</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/booklist">~/booklist</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/post">~/post</a>
+      </li>
+      
+  
+      <li class="pull-right"><a href="https://steinliber.github.io/tags/db/index.xml"><i class="fa fa-rss"></i></a></li>
+    </ul>
+  </nav>
+</header>
+  <div class="content">
+    <section class="posts">
+       
+      
+      <div class="posts-archive">
+        
+        <time class="posts-archive-month" datetime="2017-02-01">Feb 2017</time>
+        <ol class="posts-list">
+        
+          <li><a href="https://steinliber.github.io/post/online-migrations/">在线进行大规模的数据迁移[译]</a></li>
+        
+        </ol>
+      </div>
+      
+    </section>
+    <div class="pagination">
+   
 </div>
-
-      
-      <div class="content">
-        工程师团队在构建软件时会面临一个普遍的挑战：为了支持整洁的抽象和愈加复杂的特性，他们通常需要重新设计所使用的数据模型。在生产环境中，这或许就意味着要迁移百万级的活跃对象和重构数千行的代码。
-Stripe 的用户期望我们的接口是可用并且一致的。这就意味着当我们在做迁移的时候需要格外的小心：我们需要明确储存在系统中每一个对象的含义及值，同时也需要确保 Stripe 在任何时候都能为用户提供服务。
-在这篇文章中，我们将会说明我们是如何对数以百万的订阅对象进行安全的大规模迁移。
-为什么迁移是困难的? 规模 Stripe 有数亿的订阅对象。运行一次涉及所有这些对象的大规模迁移对于我们的生产数据库来说意味着大量的工作。
-假设每个对象的迁移都要耗费 1 秒钟：以这个线性增长的方式计算，迁移数亿的对象要花掉超过三年的时间。
-上线时间 商家在 Stripe 上持续不断的进行交易。我们在线上进行所有的基础设施升级，而不是依赖于计划中的维护期。因为我们在迁移过程中不能只是简单的暂停这些订阅，我们必须保证所有交易的执行都可以在我们的所有服务器上 100% 运行。
-精确性 我们的订阅表在代码库的许多不同地方都会用到。如果我们想一次性在订阅服务中修改上千行的代码，我们几乎可以确信会忽略掉一些边界条件。我们需要确保每一个服务可以继续依赖于精确的数据。
-在线迁移的一个模式 从一个表迁移百万级数据到另一个表是一件极为困难但是是许多公司不得不面对的一件事。
-这里有一个通用的 4 步双重写入模式，人们经常使用像这样的模式来做线上的大规模迁移。这里是它如何工作的
- 双重写入 到已经存在和新的数据库来保持它们同步。 修改所有代码库里的读路径 从新的表读数据。 修改所有代码库里的写路径 只写入新的表。 移除依赖于过期数据模型的旧数据 。  我们迁移的例子: 订阅 什么是订阅以及我们为什么需要做迁移？
-Stripe 订阅 帮助像 DigitalOcean 和 Squarespace 的用户建立和管理它们消费者的定期结算，在这过去的几年中，我们已经添加了许多特性去支持它们越来越复杂的账单模型，比如说多方订阅、试用、优惠券和发票。
-在早些时候，每个消费者对象最多可以有一个订阅。我们的消费者被当作独立的记录储存。因为消费者和订阅的映射是直接的，所以订阅是和消费者是一起储存的。
-class Customer Subscription subscription end  最终，我们意识到有些用户想要创建有多个订阅表的消费者。我们决定把 subscription 字段（只支持一个订阅）转换成subscriptions字段，这样我们就可以储存一个有多个活跃订阅的数组。
-class Customer array: Subscription subscriptions end  在我们添加新特性的时候，发现这个数据模型会有问题。任何对消费者订阅的改变都意味着要更新整个消费者模型，而且和订阅相关的查询也会在消费者对象中查询。所以我们决定分开储存活跃的订阅。
-我们重新设计了数据模型从而把订阅移到订阅表中。
-提醒一下⏰，我们的 4 个迁移阶段是
- 双重写入 到已经存在和新的数据库来保持它们同步。 修改所有代码库里的读路径 从新的表读数据。 修改所有代码库里的写路径 只写入新的表.
-        
-        ...<a class="button is-link" href="https://steinliber.github.io/online-migrations/" style="height:28px">
-          Read more
-          <span class="icon is-small">
-            <i class="fa fa-angle-double-right"></i>
-          </span>
-        </a>
-        
-      </div>
-    </article>
-    
   </div>
-</section>
-<section class="section">
-  <div class="container">
-    <nav class="level is-mobile">
-      <div class="level-left">
-        <div class="level-item">
-          
-          <a class="button is-disabled">
-            <span class="icon is-small is-marginless">
-              <i class="fa fa-angle-left"></i>
-            </span>
-            Newer
-          </a>
-          
-        </div>
-      </div>
-      <div class="level-right is-marginless">
-        <div class="level-item">
-          
-          <a class="button is-disabled">
-            Older
-            <span class="icon is-small is-marginless">
-              <i class="fa fa-angle-right"></i>
-            </span>
-          </a>
-          
-        </div>
-      </div>
-    </nav>
+  
+  <footer>
+  <div class="footer-info">
+    <p>
+      <a href="mailto:steinliber@gmail.com?subject="><i class="fa fa-envelope-o"></i> steinliber@gmail.com </a>
+      {
+        <a href="https://gohugo.io/" title="Hugo :: A fast and modern static website engine">Hugo 0.19</a>,
+        <a href="https://github.com/IvanChou/yii.im" title="vec">Vec</a> 
+      }
+      {<a href="http://creativecommons.org/licenses/by-nc-nd/3.0/" title="CC BY-NC-ND 3.0">CC BY-NC-ND 3.0</a>}
+    </p>
   </div>
-</section>
-
-<section class="section">
-  <div class="container has-text-centered">
-    <p></p>
-  </div>
-</section>
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" integrity="sha256-KbfTjB0WZ8vvXngdpJGY3Yp3xKk+tttbqClO11anCIU=" crossorigin="anonymous"></script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/go.min.js"></script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/dockerfile.min.js"></script>
-
-<script>hljs.initHighlightingOnLoad();</script>
+</footer>
+  
+  
 
 
+</body>
+
+</html>
