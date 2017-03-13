@@ -181,5 +181,115 @@ end
 </description>
     </item>
     
+    <item>
+      <title>Python 中的协程</title>
+      <link>https://steinliber.github.io/post/async/</link>
+      <pubDate>Mon, 23 Jan 2017 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/async/</guid>
+      <description>&lt;blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;并发描述的是一个程序是否被分成了多个可执行片段，使得每个片段都可以独立运行,不同执行片段通过通信来进行协调。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/blockquote&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;并发与并行
+首先应该明确的一点就是并发和并行的概念.并发是程序级的概念，描述的是一段程序里面可执行片段的多少，所以在程序中使用进程，线程，协程都能提高程序的并发性。而并行描述的是程序的计算过程，在同一时间内，该程序同时执行多个可执行片段。现代操作系统中的最小可执行单位是线程，你创建一个进程，操作系统实际执行单位也是该进程中的线程，也就是说只要你的计算机CPU是有多核的，而且你的程序被分成了多个线程或者进程，那每个CPU都会执行其中的一个线程 （没别的任务的情况下）这时候程序就是并行的。而协程只是一个线程中的一部分执行片段，所以单纯的使用协程并不能提高程序的并行性，只能提高单核CPU的并发性。下图表明在双核CPU的计算机下多线程和多协程的运行情况（python中因为GIL的存在是无法做到多线程的，图中只是理想情况下-。-）。
+&lt;img src=&#34;http://upload-images.jianshu.io/upload_images/1682167-b082f5565ca29ce4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240&#34; alt=&#34;多线程多协程代码的执行情况&#34; /&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;协程的应用场景
+要了解 协程，首先要知道当cpu处理系统io操作时，会等待这些操作的完成，你可知道这短短的等待时间cpu可以执行多少命令，下面是node.js的创始人在一次演讲上展示的图。
+&lt;img src=&#34;http://upload-images.jianshu.io/upload_images/1682167-1473da0167ff5264.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240&#34; alt=&#34;现在的电脑从不同的储存设备中读取数据的延迟(最后一列只是类比)&#34; /&gt;
+当今的计算机cpu普遍性能可以达到2000000000次/秒，简单计算下从硬盘中取数据会让cpu什么都不干0.0025秒，那段时间本来可以执行5000000条指令啊-_-。于是就诞生了两种方法来防止io的阻塞。
+(1) 为每个会阻塞的操作单独创建一个线程，这样你取你的，我运行我的，就可以提高cpu的利用率
+(2)把每个会阻塞的操作变成一个异步调用，我先跑我的，等你取完了通知我再收拾你
+线程的切换有个问题，切换线程消耗的资源多，还有锁。其实最重要的是python因为gil的存在，对线程的支持十分有限。
+在第二种方法中可以分为异步回调和协程两种方式。这两者最大的区别是协程在内存中维护自身的运行状态和上下文，这样程序的逻辑流表现起来就非常简单，而异步回调则是通过在调用函数中注册回调函数，调用函数的运行状态通过回调函数返回。所以一般来说回调函数的实现都会比协程复杂（关于回调具体可以看&lt;a href=&#34;http://blog.ometer.com/2011/07/24/callbacks-synchronous-and-asynchronous/）&#34;&gt;http://blog.ometer.com/2011/07/24/callbacks-synchronous-and-asynchronous/）&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;python中的协程
+在python中协程的实现是通过yield来实现的，有些同学可能知道yield是用来把函数变成生成器的却不知道它也可以用于协程。其实仔细一想你就知道，yield命令其实会保存当前函数的上下文，然后返回一个数值给调用它的函数。再想想上面的协程实现，嘿嘿，懂了吧。&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;总的来说，协程作为一个程序级的实现，优化了程序io的性能，同时把异步回调的实现变成了同步，再加上python中asyncio库的支持，非常推荐大家去学习下。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>elasticsearch 使用中的坑</title>
+      <link>https://steinliber.github.io/post/elasticsearch_fill/</link>
+      <pubDate>Tue, 17 Jan 2017 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/elasticsearch_fill/</guid>
+      <description>&lt;p&gt;在Es的使用过程中，会遇到许多的坑，在这里总结下我所遇到的一些问题和解决方法。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Es重建索引
+Es的索引不像mysql等数据库那样可以方便的更改和删除字段，所以如果ES中涉及到字段的变更，就需要重建索引。在Es中存在大量数据的情况下怎样才能做到ES保持正常服务的同时又能建立新的索引？
+（1）首先我们要创建一个alias指向当前索引，所有对当前索引的操作都通过alias（相当于软连接）
+（2）然后我们需要创建一个名字不同的索引（最好带上版本号）并创建自己所需要的映射关系
+（3）使用Es提供的reindex将现有索引的数据全部导入到新的索引中
+（4）将（1）中的假名指向新索引，这样所有的请求都会有新索引来处理
+（5）删除旧的索引
+上述方法在索引存在大量数据reindex时会对性能产生较大影响，还有的方法就是在索引中不管需要更改的字段，直接创建新的字段，在程序中控制返回的结果，这样会使程序变得比较复杂但重建索引时对Es性能影响不大。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Es近实时搜索
+Es处于性能的考虑，默认会每隔一秒钟将内存中的段保存到硬盘中，这时候保存的记录才会被搜索到，这在现实中影响不是很大，但在写测试的时候如果保存了记录却搜索不到，总不能每次都等一秒钟再搜索把。这时候可以用Es的flush将数据手动刷新到硬盘，这样数据就可以搜索到了
+、&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;EsRejectedExecutionException的问题
+Es中处理数据时会将请求的数据在队列中保存起来，当请求的数据数量过多，es的处理速度跟不上时，es要处理的数据会超过队列的长度，这些多出来的数据就会返EsRejectedExecutionException异常。在我的Mac上（8G内存，I5处理器）在Es上建立80万的数据，有1万个数据因为EsRejectedExecutionException而丢失。处理这个问题有两种解决方法&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;提高本机的性能，对es进行相关配置
+Es处理的速度如果能高于请求建立索引的速度，那自然不会有这个问题。Es中默认的相关配置比较低，我们可以进行一定的配置来提高处理性能，如可以在环境变量中设置ES_MIN_MEM=8g，ES_MAX_MEM=8g，java我也不是很懂，估计是增大es可以使用的系统内存来提高运行速度&lt;/li&gt;
+&lt;li&gt;上面的方法毕竟治标不治本，在部署环境下，不同的机子可能会有不同的性能，所以需要我们该想办法把被EsRejectedExecutionException的记录重新建立索引，实现的python代码如下所示&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;   actions = self._build_elastic_actions(elas_indexs)
+         success_num, err_items = bulk(
+             client=self.es,
+             actions=(#要在es中保存的数据，可迭代的都行),
+             chunk_size=200,
+             raise_on_error=False,
+             raise_on_exception=False
+         )
+         # 处理es拒绝服务的情况
+         reject_es_data_id = [error[&#39;index&#39;][&#39;_id&#39;] for error in err_items
+                              if error[&#39;index&#39;][&#39;status&#39;] == 429]
+         try_time = 0
+         while len(reject_es_data_id) &amp;gt; 0 and try_time &amp;lt; 5:
+             time.sleep(5)
+             records = Record.objects.filter(id__in=reject_es_data_id)
+             re_success_num, re_error_items = bulk(
+                 client=self.es,
+                 actions=(#要重建的索引),
+                 chunk_size=200,
+                 raise_on_error=False,
+                 raise_on_exception=False
+             )
+             reject_es_data_id = [error[&#39;index&#39;][&#39;_id&#39;] for error in err_items
+                                  if error[&#39;index&#39;][&#39;status&#39;] == 429]
+             success_num += re_success_num
+             try_time += 1
+         error_items = [error for error in err_items if error[&#39;index&#39;][&#39;status&#39;] != 429]
+         error_items.extend(re_error_items)
+         return success_num, error_items
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;基本思想就是每次bulk创建es的索引，检测返回的错误中有没有因为EsRejectedExecutionException异常而索引失败的，如果有就进入一个循环，在循环中休息5秒再创建被拒绝的索引，这样循环5次，还是没创建的话就退出创建剩下的。在这里我在es中创建和本地数据库id一样的记录，所以可以通过id来重新建索引。基本上就是这个意思，剩下什么错误的记录什么的实现起来都很简单。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Es的默认模版
+如果你是动态创建索引的话（也就是说不创建字段的映射关系，由Es自动判断字段的类型）对于有些字段，你可能就想要这个类型，而Es却会把他创建为另一个类型。比如说你有个字段keywords，这个字段当然不能被分词，而es一般会将字符串都保存为分词的形式，这就不符合我们的需求了。
+还好Es中提供了默认模版的机制，可以指定特定索引哪些字段储存为什么类型&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Es的搜索结果数量
+在默认情况下，Es只会返回搜索结果的前10项，可以通过分页来获取后面的内容，但如果分页太深或者返回的结果太多，可能会导致性能问题。因为当我们请求结果的第一页（结果1到10）时，每个分片产生自己最顶端10个结果然后返回它们给请求节点，它再排序这所有的50个结果以选出顶端的10个结果。而如果我们请求第1000页时，得到的结果是10001到10010的数据。工作方式都相同，不同的是每个分片都必须产生顶端的10010个结果。然后请求节点排序这50050个结果并丢弃了剩余的50040个。当真有这种需求时，可以使用Es的scroll来进行搜索，它会在Es中记录上次搜寻的位置，我们就可以持续的从Es中拉数据。也可以用scan来禁用排序，只要有分片中有结果就返回。&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
   </channel>
 </rss>
