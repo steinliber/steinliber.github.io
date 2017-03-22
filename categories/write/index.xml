@@ -9,6 +9,162 @@
     <atom:link href="https://steinliber.github.io/categories/write/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Python 中的鸭子类型</title>
+      <link>https://steinliber.github.io/post/python_duck/</link>
+      <pubDate>Sun, 24 Dec 2017 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/python_duck/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;‘那只东西呱呱的叫，有扁扁的嘴巴，走起路来还外八，对！它就是只鸭子’&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;基本定义
+对于熟悉python的开发者来说，相信对于python的鸭子类型比较熟悉，所谓鸭子类型，在维基百科中的准确定义是‘是动态类型的一种风格。在这种风格中，一个对象有效的语义，不是由继承自特定的类或实现特定的接口，而是由&amp;rdquo;当前方法和属性的集合&amp;rdquo;决定’。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;python中的具体实现
+下面的代码就是一个简单的鸭子类型&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;class duck():
+    def walk(self):
+        print(&#39;I walk like a duck&#39;)
+    def swim(self):
+        print(&#39;i swim like a duck&#39;)
+
+class person():
+    def walk(self):
+        print(&#39;this one walk like a duck&#39;) 
+    def swim(self):
+        print(&#39;this man swim like a duck&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对于一个鸭子类型来说，我们并不关心这个对象的类型本身或是这个类继承，而是这个类是如何被使用的。我们可以通过下面的代码来调用这些类的方法。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;def watch_duck(animal):
+    animal.walk()
+    animal.swim()
+
+small_duck = duck()
+watch_duck(small_duck)
+
+output &amp;gt;&amp;gt; 
+I walk like a duck
+i swim like a duck
+
+
+duck_like_man = person()
+watch_duck(duck_like_man)
+
+output &amp;gt;&amp;gt; 
+this one walk like a duck
+this man swim like a duck
+
+
+class Lame_Foot_Duck():
+    def swim(self):
+        print(&#39;i am lame but i can swim&#39;)
+
+lame_duck = Lame_Foot_Duck()
+watch_duck(lame_duck)
+
+output &amp;gt;&amp;gt;
+AttributeError: Lame_Foot_Duck instance has no attribute &#39;walk&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;watch_duck函数接收这个类的对象，然后并没有检查对象的类型，而是直接调用这个对象的走和游的方法，如果所需要的方法不存在就报错。具体在python中鸭子类型的体现如下面的代码所示&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CollectionClass():
+    lists = [1,2,3,4]
+    def __getitem__(self, index):
+        return self.lists[index]
+
+iter_able_object = CollectionClass()
+
+class Another_iterAbleClass():
+    lists=[1,2,3,4]
+    list_position = -1
+
+    def __iter__(self):
+        return self
+
+    def next(self): #还有更简单的实现，使用生成器或迭代器什么的:)
+        self.list_position += 1
+        if self.list_position &amp;gt;3:
+            raise StopIteration
+        return self.lists[self.list_position]
+
+another_iterable_object=Another_iterAbleClass()
+
+print(iter_able_object[1])
+print(iter_able_object[1:3])
+output&amp;gt;&amp;gt;
+2
+[2, 3]
+
+another_iterable_object[2]
+output&amp;gt;&amp;gt;
+Traceback (most recent call last):
+  File &amp;quot;/Users/steinliber/a.py&amp;quot;, line 32, in &amp;lt;module&amp;gt;
+    another_iterable_object[2]
+TypeError: &#39;Another_iterAbleClass&#39; object does not support indexing
+
+print(next(another_iterable_object))
+output&amp;gt;&amp;gt;
+1
+print(next(another_iterable_object))
+output&amp;gt;&amp;gt;
+2
+
+print(next(iter_able_object))
+output&amp;gt;&amp;gt;
+Traceback (most recent call last):
+  File &amp;quot;/Users/steinliber/a.py&amp;quot;, line 29, in &amp;lt;module&amp;gt;
+    print(next(iter_able_object))
+TypeError: IterAbleClass object is not an iterator
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在python把上述代码的实现方法叫做protocol（协议），这些protocol可以看作是通知型的接口，它规定了调用方使用该功能要调用对象的哪些方法，被调用方要实现哪些方法才能完成这个功能。它和java中的接口区别在于java中的接口功能实现需要通过继承，继承的类必须实现接口中的所有的抽象方法，所以在Java中强调的是类型的概念，而python中的protocol更多的是通知性的，一个函数规定要实现某个功能需要调用传入对象的哪些方法，所有实现这些方法的类就可以实现这个功能。&lt;/p&gt;
+
+&lt;p&gt;具体从上面两个类来说，第一个类实现了__getitem__方法,那python的解释器就会把它当做一个collection，就可以在这个类的对象上使用切片,获取子项等方法，第二个类实现了__iter__和next方法，python就会认为它是一个iterator，就可以在这个类的对象上通过循环来获取各个子项。一个类可以实现它有能力实现的方法，并只能被用于在它有意义的情况下。&lt;/p&gt;
+
+&lt;p&gt;这两个类和上面的鸭子类相比较，其实用于切边的[](它其实调用的是python的slice函数)和用于循环的iter()就相当于watch_duck函数，这些函数都接收任意类的对象，并调用实现功能所需要的对象中的方法来实现功能，若该函数中调用的方法对象里面不存在，就报错。&lt;/p&gt;
+
+&lt;p&gt;从上面可以看出，python鸭子类型的灵活性在于它关注的是这个所调用的对象是如何被使用的，而没有关注对象类型的本身是什么。所以在python中使用isinstance来判断传入参数的类型是不提倡的，更pythonic的方法是直接使用传入的参数，通过try，except来处理传入参数不符合要求的情况。我们应该通过传入对象的能力而不是传入对象的类型来使用该对象。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>一个django APP 的服务器部署</title>
+      <link>https://steinliber.github.io/post/django_app_deploy/</link>
+      <pubDate>Thu, 23 Feb 2017 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/django_app_deploy/</guid>
+      <description>
+
+&lt;p&gt;相信很多后端开发者应该经历过代码在本机上跑的好好的，但一部署到服务器上就出差错了，那其中到底发生了什么?下面我就来扒一扒我在部署一个django应用过程中的心得体会。&lt;/p&gt;
+
+&lt;h3 id=&#34;代码&#34;&gt;代码&lt;/h3&gt;
+
+&lt;p&gt;要运行一个app最重要的就是代码，我们需要先把代码放到服务器上。把代码传到部署服务器上有很多办法，目前主流的是在部署服务器上使用git来拉取代码，这样就能在服务器上进行代码的版本控制。当然也可以用scp拷贝到服务器上（不推荐）&lt;/p&gt;
+
+&lt;h2 id=&#34;依赖&#34;&gt;依赖&lt;/h2&gt;
+
+&lt;p&gt;一个app要满足所有的依赖关系以后，才能够正常运行，对于django应用至少django包是必不可少的。在python中可以通过 requirements.txt 来安装这些依赖。一般来说要为每个应用创建一个单独的虚拟环境，这样可以防止一个服务器上多个app之间依赖的互相影响。&lt;/p&gt;
+
+&lt;h2 id=&#34;环境&#34;&gt;环境&lt;/h2&gt;
+
+&lt;p&gt;这里的环境指的是app的运行配置，包括数据库链接的地址，SECRET KEY这些配置，本地环境下的环境配置和线上的一般是不一样的。在12-factor中推荐用环境变量来实现环境的相关配置，django可以使用django-environ来实现。到这一步为止，线上服务器的这个app应该可以直接在3服务器上运行了也就是自启动应用。&lt;/p&gt;
+
+&lt;h2 id=&#34;服务&#34;&gt;服务&lt;/h2&gt;
+
+&lt;p&gt;上面的应用是已经可以启动了，但如果你连的数据库是本地，那运行中肯定是会报错的，这些app运行过程中所依赖的服务我把它称为依赖服务，还有像logstash日志收集服务，uwsgi服务器服务，supervisor进程管理服务等，这些对于一个app的运行来说并非必要的服务我把它称为附加服务。对于一个django应用，可以用uwsgi来替代django内置的服务器，用nginx来做反向代理和对外的服务器，用logstash来收集运行过程中的日志，用supervisor来管理其它的进程。
+##综述
+其实对于一个线上的应用来说，可以这样说 app=代码+依赖+环境， 而一个server=app+服务，这样来看我们就可以把一个django应用的部署抽象出来，使用像saltstack的工具来部署大多数的django应用，最近在写一个Django 应用的自动部署平台，下次可以分享一下。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Python 中的协程</title>
       <link>https://steinliber.github.io/post/async/</link>
       <pubDate>Mon, 23 Jan 2017 13:50:46 +0200</pubDate>
@@ -115,6 +271,79 @@ Es处理的速度如果能高于请求建立索引的速度，那自然不会有
 &lt;li&gt;&lt;p&gt;Es的搜索结果数量
 在默认情况下，Es只会返回搜索结果的前10项，可以通过分页来获取后面的内容，但如果分页太深或者返回的结果太多，可能会导致性能问题。因为当我们请求结果的第一页（结果1到10）时，每个分片产生自己最顶端10个结果然后返回它们给请求节点，它再排序这所有的50个结果以选出顶端的10个结果。而如果我们请求第1000页时，得到的结果是10001到10010的数据。工作方式都相同，不同的是每个分片都必须产生顶端的10010个结果。然后请求节点排序这50050个结果并丢弃了剩余的50040个。当真有这种需求时，可以使用Es的scroll来进行搜索，它会在Es中记录上次搜寻的位置，我们就可以持续的从Es中拉数据。也可以用scan来禁用排序，只要有分片中有结果就返回。&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Elasticsearch 的索引机制</title>
+      <link>https://steinliber.github.io/post/</link>
+      <pubDate>Tue, 10 Jan 2017 10:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/</guid>
+      <description>&lt;p&gt;首先最重要的一点是倒排索引的不可变性。我们用惯了mysql，postgeresql等数据库的可能会觉得一个数据保存在数据库可以增删查改是天经地义的事，当第一次接触Es时，相信很多人都无法理解为什么Es只支持增和查，这意味着当我们想要搜索一个新文档时，必须重建整个索引。但Es这样做也是有它的考虑的，倒排索引不可变就不需要锁来保证一致性，可以将索引一直保存在缓存中避免对硬盘的大量访问，创建和查询之间不会相互干扰。其实仔细想想，对于一个全文检索的功能来说，数据字段改动的可能性很小，而全文检索对性能的要求却很高，所以开发者才会做出这样的决定。
+  既然实现了倒排索引，那当我们新添加一个索引时，怎么样才能把索引最终变得可搜索呢，答案就是建多个索引，elasticsearch使用了底层lucene的per-segment search的概念，也就是说索引在硬盘中是以段的形式存在的，当我们新建索引时，es首先作为一个段把它保存在内存中，之后该段就会作为一个新的段保存到硬盘中，之后这些文档就可以被搜索到了。因为数据保存在内存中的性能往往比保存在硬盘中高得多，要一次性把整个段保存到硬盘中，当数据量大时对性能的影响是极大的。还好es为我们提供了一种更高效的方式，通过它底层的lucene写入打开功能，es默认每隔一秒，就会把内存段中的内容保存到硬盘的相应段中，这些数据就可以检索到了（当初写测试的时候老跑不过，花了好长时间排错，其实只需要强制刷新段到硬盘就可以了），在查询的时候，es会遍历每个段来找到需要的记录。
+  当然，如果每秒都创建一个新的段，那es中段的数据会多到不可想象，不用说，对性能和硬盘空间也有极大的影响。es在后台会自动的合并选择小的段来合并成大的段，生成大的段后，小的段就会被删除。
+  综上可以看出，es为了实现一个高性能，高可扩展的搜索引擎，它内部做了很多的权衡和优化，上面所说的只是其中的一小部分，但从中可以看到我们在软件开发过程中，总是会面临许多选择，大到使用什么数据库，小到循环是用for还是while，我们都应遵循开发目标是什么，需求是什么，而不是盲目的追逐新的技术。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Elasticsearch 简单介绍</title>
+      <link>https://steinliber.github.io/post/elasticsearch_intorduce/</link>
+      <pubDate>Fri, 30 Dec 2016 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/elasticsearch_intorduce/</guid>
+      <description>
+
+&lt;p&gt;elasticsearch是一个分布式的全文检索引擎，所谓分布式指的是elasticsearch可以很方便的水平扩容，当你觉得一个elasticsearch节点满足不了你的需求时，可以直接将新的elasticsearch节点加入这个集群来提供更高效的服务。而全文检索指的就你查找一个词，所有与这个词相关的文章都会按照相关性顺序返回。&lt;/p&gt;
+
+&lt;h2 id=&#34;elasticsearch-全文检索的实现原理&#34;&gt;elasticsearch 全文检索的实现原理&lt;/h2&gt;
+
+&lt;p&gt;传统的数据库如果想找到数据里面包含特定值的那些记录，基本上就要遍历所有相关的记录进行比较，当数据量不是很大时，对性能影响不是很大，但当数据量达到千万级甚至亿万级时，这样遍历不仅耗时间，而且会消耗大量系统资源。而且这样也找不到含近义词的数据，更别说按相关度排序了。那elasticsearch是如何解决这个问题的呢?
+没错，就是倒排索引，既然从文章中找词效果不是很理想，那我们可以倒着来&amp;ndash;&amp;gt;根据词来找到文章，这样一切就迎刃而解了。当我们把一篇文章保存在elasticsearch中时，它会先把这篇文章分解成一个个的词*（通过分词器，用户可自行选择），然后创建并维护这些词到文章的映射关系，当在elasticsearch中进行查询时也是一样，它会把查询的词分成每个独立的词，在维护的映射关系中查找得到对应的文章返回。
+比如说我现在在elasticsearch中保存了下面的一句话，该纪录的id是123（好吧，我是有点小文艺的;）
+&amp;gt; 当风停住脚步时候，已经轮回了几个春秋.&lt;/p&gt;
+
+&lt;p&gt;这句话会被拆成
+&amp;gt;  风， 停住， 脚步， 脚， 步， 时候， 已经， 轮回， 轮， 回了， 回， 几个， 春秋
+&amp;gt;     在elasticsearch中储存的映射关系如下（简化版，es中会有更多相关的内容，如词在文章中出现的次数也会保存，这是为了计算相关性）&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;词&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;文章在elasticsearch中保存的id&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;风&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;停住&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;脚步&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&amp;hellip;&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;这样我们就可以在elasticsearch中进行查询了，比如说我现在要查询“风和春秋”，elasticsearch就会在查询时把它拆分成
+&amp;gt; 风，春秋&lt;/p&gt;
+
+&lt;p&gt;之后在elasticsearch的映射关系中找这两个词，找到对应的文章后通过相关度算法*（和词在文章中出现的次数，文章的长度等因素有关）返回我们所想搜索的结果，这样我们就可以获取到所要搜索的记录了。当然es内部的处理不会那么简单，但对es的单个节点来说，运行的思路就是这样。
+这篇文章对elasticsearch进行了简单介绍，在下一部分，我会讲讲elasticsearch中为了实现倒排索引而与传统数据库有所不同的地方。&lt;/p&gt;
 </description>
     </item>
     

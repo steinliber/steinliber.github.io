@@ -2,8 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://steinliber.github.io/post/python_duck/</loc>
+    <lastmod>2017-12-24T13:50:46+02:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://steinliber.github.io/post/online-migrations/</loc>
     <lastmod>2017-02-24T13:50:46+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://steinliber.github.io/post/django_app_deploy/</loc>
+    <lastmod>2017-02-23T13:50:46+02:00</lastmod>
   </url>
   
   <url>
@@ -17,8 +27,18 @@
   </url>
   
   <url>
+    <loc>https://steinliber.github.io/post/</loc>
+    <lastmod>2017-01-10T10:50:46+02:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://steinliber.github.io/post/webhooks-dos-and-dont-s-what-we-learned-after-integrating-100-apis/</loc>
     <lastmod>2016-12-30T20:32:46+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://steinliber.github.io/post/elasticsearch_intorduce/</loc>
+    <lastmod>2016-12-30T13:50:46+02:00</lastmod>
   </url>
   
   <url>
@@ -53,13 +73,19 @@
   
   <url>
     <loc>https://steinliber.github.io/tags/deploy/</loc>
-    <lastmod>2017-01-17T13:50:46+02:00</lastmod>
+    <lastmod>2017-02-23T13:50:46+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://steinliber.github.io/tags/design/</loc>
     <lastmod>2016-12-30T20:32:46+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://steinliber.github.io/tags/django/</loc>
+    <lastmod>2017-02-23T13:50:46+02:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -76,20 +102,14 @@
   </url>
   
   <url>
-    <loc>https://steinliber.github.io/post/</loc>
-    <lastmod>2017-02-24T13:50:46+02:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://steinliber.github.io/tags/python/</loc>
-    <lastmod>2017-01-23T13:50:46+02:00</lastmod>
+    <lastmod>2017-12-24T13:50:46+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://steinliber.github.io/</loc>
-    <lastmod>2017-02-24T13:50:46+02:00</lastmod>
+    <lastmod>2017-12-24T13:50:46+02:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -106,7 +126,7 @@
   
   <url>
     <loc>https://steinliber.github.io/categories/write/</loc>
-    <lastmod>2017-01-23T13:50:46+02:00</lastmod>
+    <lastmod>2017-12-24T13:50:46+02:00</lastmod>
     <priority>0</priority>
   </url>
   

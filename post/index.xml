@@ -1,13 +1,139 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on Stein&#39;s World</title>
+    <title>Elasticsearch 的索引机制 on Stein&#39;s World</title>
     <link>https://steinliber.github.io/post/index.xml</link>
-    <description>Recent content in Posts on Stein&#39;s World</description>
+    <description>Recent content in Elasticsearch 的索引机制 on Stein&#39;s World</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 24 Feb 2017 13:50:46 +0200</lastBuildDate>
+    <lastBuildDate>Tue, 10 Jan 2017 10:50:46 +0200</lastBuildDate>
     <atom:link href="https://steinliber.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Python 中的鸭子类型</title>
+      <link>https://steinliber.github.io/post/python_duck/</link>
+      <pubDate>Sun, 24 Dec 2017 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/python_duck/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;‘那只东西呱呱的叫，有扁扁的嘴巴，走起路来还外八，对！它就是只鸭子’&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;基本定义
+对于熟悉python的开发者来说，相信对于python的鸭子类型比较熟悉，所谓鸭子类型，在维基百科中的准确定义是‘是动态类型的一种风格。在这种风格中，一个对象有效的语义，不是由继承自特定的类或实现特定的接口，而是由&amp;rdquo;当前方法和属性的集合&amp;rdquo;决定’。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;python中的具体实现
+下面的代码就是一个简单的鸭子类型&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;class duck():
+    def walk(self):
+        print(&#39;I walk like a duck&#39;)
+    def swim(self):
+        print(&#39;i swim like a duck&#39;)
+
+class person():
+    def walk(self):
+        print(&#39;this one walk like a duck&#39;) 
+    def swim(self):
+        print(&#39;this man swim like a duck&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对于一个鸭子类型来说，我们并不关心这个对象的类型本身或是这个类继承，而是这个类是如何被使用的。我们可以通过下面的代码来调用这些类的方法。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;def watch_duck(animal):
+    animal.walk()
+    animal.swim()
+
+small_duck = duck()
+watch_duck(small_duck)
+
+output &amp;gt;&amp;gt; 
+I walk like a duck
+i swim like a duck
+
+
+duck_like_man = person()
+watch_duck(duck_like_man)
+
+output &amp;gt;&amp;gt; 
+this one walk like a duck
+this man swim like a duck
+
+
+class Lame_Foot_Duck():
+    def swim(self):
+        print(&#39;i am lame but i can swim&#39;)
+
+lame_duck = Lame_Foot_Duck()
+watch_duck(lame_duck)
+
+output &amp;gt;&amp;gt;
+AttributeError: Lame_Foot_Duck instance has no attribute &#39;walk&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;watch_duck函数接收这个类的对象，然后并没有检查对象的类型，而是直接调用这个对象的走和游的方法，如果所需要的方法不存在就报错。具体在python中鸭子类型的体现如下面的代码所示&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CollectionClass():
+    lists = [1,2,3,4]
+    def __getitem__(self, index):
+        return self.lists[index]
+
+iter_able_object = CollectionClass()
+
+class Another_iterAbleClass():
+    lists=[1,2,3,4]
+    list_position = -1
+
+    def __iter__(self):
+        return self
+
+    def next(self): #还有更简单的实现，使用生成器或迭代器什么的:)
+        self.list_position += 1
+        if self.list_position &amp;gt;3:
+            raise StopIteration
+        return self.lists[self.list_position]
+
+another_iterable_object=Another_iterAbleClass()
+
+print(iter_able_object[1])
+print(iter_able_object[1:3])
+output&amp;gt;&amp;gt;
+2
+[2, 3]
+
+another_iterable_object[2]
+output&amp;gt;&amp;gt;
+Traceback (most recent call last):
+  File &amp;quot;/Users/steinliber/a.py&amp;quot;, line 32, in &amp;lt;module&amp;gt;
+    another_iterable_object[2]
+TypeError: &#39;Another_iterAbleClass&#39; object does not support indexing
+
+print(next(another_iterable_object))
+output&amp;gt;&amp;gt;
+1
+print(next(another_iterable_object))
+output&amp;gt;&amp;gt;
+2
+
+print(next(iter_able_object))
+output&amp;gt;&amp;gt;
+Traceback (most recent call last):
+  File &amp;quot;/Users/steinliber/a.py&amp;quot;, line 29, in &amp;lt;module&amp;gt;
+    print(next(iter_able_object))
+TypeError: IterAbleClass object is not an iterator
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在python把上述代码的实现方法叫做protocol（协议），这些protocol可以看作是通知型的接口，它规定了调用方使用该功能要调用对象的哪些方法，被调用方要实现哪些方法才能完成这个功能。它和java中的接口区别在于java中的接口功能实现需要通过继承，继承的类必须实现接口中的所有的抽象方法，所以在Java中强调的是类型的概念，而python中的protocol更多的是通知性的，一个函数规定要实现某个功能需要调用传入对象的哪些方法，所有实现这些方法的类就可以实现这个功能。&lt;/p&gt;
+
+&lt;p&gt;具体从上面两个类来说，第一个类实现了__getitem__方法,那python的解释器就会把它当做一个collection，就可以在这个类的对象上使用切片,获取子项等方法，第二个类实现了__iter__和next方法，python就会认为它是一个iterator，就可以在这个类的对象上通过循环来获取各个子项。一个类可以实现它有能力实现的方法，并只能被用于在它有意义的情况下。&lt;/p&gt;
+
+&lt;p&gt;这两个类和上面的鸭子类相比较，其实用于切边的[](它其实调用的是python的slice函数)和用于循环的iter()就相当于watch_duck函数，这些函数都接收任意类的对象，并调用实现功能所需要的对象中的方法来实现功能，若该函数中调用的方法对象里面不存在，就报错。&lt;/p&gt;
+
+&lt;p&gt;从上面可以看出，python鸭子类型的灵活性在于它关注的是这个所调用的对象是如何被使用的，而没有关注对象类型的本身是什么。所以在python中使用isinstance来判断传入参数的类型是不提倡的，更pythonic的方法是直接使用传入的参数，通过try，except来处理传入参数不符合要求的情况。我们应该通过传入对象的能力而不是传入对象的类型来使用该对象。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>在线进行大规模的数据迁移[译]</title>
@@ -178,6 +304,36 @@ end
 &lt;/ul&gt;
 
 &lt;p&gt;我们发现这种方法在 Stripe 上执行的许多在线迁移中都非常有效。我们希望这些实践对其他团队执行大规模迁移会有用。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>一个django APP 的服务器部署</title>
+      <link>https://steinliber.github.io/post/django_app_deploy/</link>
+      <pubDate>Thu, 23 Feb 2017 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/django_app_deploy/</guid>
+      <description>
+
+&lt;p&gt;相信很多后端开发者应该经历过代码在本机上跑的好好的，但一部署到服务器上就出差错了，那其中到底发生了什么?下面我就来扒一扒我在部署一个django应用过程中的心得体会。&lt;/p&gt;
+
+&lt;h3 id=&#34;代码&#34;&gt;代码&lt;/h3&gt;
+
+&lt;p&gt;要运行一个app最重要的就是代码，我们需要先把代码放到服务器上。把代码传到部署服务器上有很多办法，目前主流的是在部署服务器上使用git来拉取代码，这样就能在服务器上进行代码的版本控制。当然也可以用scp拷贝到服务器上（不推荐）&lt;/p&gt;
+
+&lt;h2 id=&#34;依赖&#34;&gt;依赖&lt;/h2&gt;
+
+&lt;p&gt;一个app要满足所有的依赖关系以后，才能够正常运行，对于django应用至少django包是必不可少的。在python中可以通过 requirements.txt 来安装这些依赖。一般来说要为每个应用创建一个单独的虚拟环境，这样可以防止一个服务器上多个app之间依赖的互相影响。&lt;/p&gt;
+
+&lt;h2 id=&#34;环境&#34;&gt;环境&lt;/h2&gt;
+
+&lt;p&gt;这里的环境指的是app的运行配置，包括数据库链接的地址，SECRET KEY这些配置，本地环境下的环境配置和线上的一般是不一样的。在12-factor中推荐用环境变量来实现环境的相关配置，django可以使用django-environ来实现。到这一步为止，线上服务器的这个app应该可以直接在3服务器上运行了也就是自启动应用。&lt;/p&gt;
+
+&lt;h2 id=&#34;服务&#34;&gt;服务&lt;/h2&gt;
+
+&lt;p&gt;上面的应用是已经可以启动了，但如果你连的数据库是本地，那运行中肯定是会报错的，这些app运行过程中所依赖的服务我把它称为依赖服务，还有像logstash日志收集服务，uwsgi服务器服务，supervisor进程管理服务等，这些对于一个app的运行来说并非必要的服务我把它称为附加服务。对于一个django应用，可以用uwsgi来替代django内置的服务器，用nginx来做反向代理和对外的服务器，用logstash来收集运行过程中的日志，用supervisor来管理其它的进程。
+##综述
+其实对于一个线上的应用来说，可以这样说 app=代码+依赖+环境， 而一个server=app+服务，这样来看我们就可以把一个django应用的部署抽象出来，使用像saltstack的工具来部署大多数的django应用，最近在写一个Django 应用的自动部署平台，下次可以分享一下。&lt;/p&gt;
 </description>
     </item>
     
@@ -416,6 +572,66 @@ Es处理的速度如果能高于请求建立索引的速度，那自然不会有
 &lt;p&gt;PS. &lt;a href=&#34;https://medium.com/u/504c7870fdb6&#34;&gt;Medium&lt;/a&gt; 任何关于 webhooks 的想法？拜托，RSS 是老一套的做法啦。&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;更新&lt;/strong&gt;: Medium 实际上提供了一种通过 &lt;a href=&#34;http://medium.superfeedr.com/&#34;&gt;http://medium.superfeedr.com/&lt;/a&gt; 实时通知的方式👌&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Elasticsearch 简单介绍</title>
+      <link>https://steinliber.github.io/post/elasticsearch_intorduce/</link>
+      <pubDate>Fri, 30 Dec 2016 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/elasticsearch_intorduce/</guid>
+      <description>
+
+&lt;p&gt;elasticsearch是一个分布式的全文检索引擎，所谓分布式指的是elasticsearch可以很方便的水平扩容，当你觉得一个elasticsearch节点满足不了你的需求时，可以直接将新的elasticsearch节点加入这个集群来提供更高效的服务。而全文检索指的就你查找一个词，所有与这个词相关的文章都会按照相关性顺序返回。&lt;/p&gt;
+
+&lt;h2 id=&#34;elasticsearch-全文检索的实现原理&#34;&gt;elasticsearch 全文检索的实现原理&lt;/h2&gt;
+
+&lt;p&gt;传统的数据库如果想找到数据里面包含特定值的那些记录，基本上就要遍历所有相关的记录进行比较，当数据量不是很大时，对性能影响不是很大，但当数据量达到千万级甚至亿万级时，这样遍历不仅耗时间，而且会消耗大量系统资源。而且这样也找不到含近义词的数据，更别说按相关度排序了。那elasticsearch是如何解决这个问题的呢?
+没错，就是倒排索引，既然从文章中找词效果不是很理想，那我们可以倒着来&amp;ndash;&amp;gt;根据词来找到文章，这样一切就迎刃而解了。当我们把一篇文章保存在elasticsearch中时，它会先把这篇文章分解成一个个的词*（通过分词器，用户可自行选择），然后创建并维护这些词到文章的映射关系，当在elasticsearch中进行查询时也是一样，它会把查询的词分成每个独立的词，在维护的映射关系中查找得到对应的文章返回。
+比如说我现在在elasticsearch中保存了下面的一句话，该纪录的id是123（好吧，我是有点小文艺的;）
+&amp;gt; 当风停住脚步时候，已经轮回了几个春秋.&lt;/p&gt;
+
+&lt;p&gt;这句话会被拆成
+&amp;gt;  风， 停住， 脚步， 脚， 步， 时候， 已经， 轮回， 轮， 回了， 回， 几个， 春秋
+&amp;gt;     在elasticsearch中储存的映射关系如下（简化版，es中会有更多相关的内容，如词在文章中出现的次数也会保存，这是为了计算相关性）&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;词&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;文章在elasticsearch中保存的id&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;风&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;停住&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;脚步&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&amp;hellip;&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;这样我们就可以在elasticsearch中进行查询了，比如说我现在要查询“风和春秋”，elasticsearch就会在查询时把它拆分成
+&amp;gt; 风，春秋&lt;/p&gt;
+
+&lt;p&gt;之后在elasticsearch的映射关系中找这两个词，找到对应的文章后通过相关度算法*（和词在文章中出现的次数，文章的长度等因素有关）返回我们所想搜索的结果，这样我们就可以获取到所要搜索的记录了。当然es内部的处理不会那么简单，但对es的单个节点来说，运行的思路就是这样。
+这篇文章对elasticsearch进行了简单介绍，在下一部分，我会讲讲elasticsearch中为了实现倒排索引而与传统数据库有所不同的地方。&lt;/p&gt;
 </description>
     </item>
     

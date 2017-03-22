@@ -84,5 +84,78 @@ Es处理的速度如果能高于请求建立索引的速度，那自然不会有
 </description>
     </item>
     
+    <item>
+      <title>Elasticsearch 的索引机制</title>
+      <link>https://steinliber.github.io/post/</link>
+      <pubDate>Tue, 10 Jan 2017 10:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/</guid>
+      <description>&lt;p&gt;首先最重要的一点是倒排索引的不可变性。我们用惯了mysql，postgeresql等数据库的可能会觉得一个数据保存在数据库可以增删查改是天经地义的事，当第一次接触Es时，相信很多人都无法理解为什么Es只支持增和查，这意味着当我们想要搜索一个新文档时，必须重建整个索引。但Es这样做也是有它的考虑的，倒排索引不可变就不需要锁来保证一致性，可以将索引一直保存在缓存中避免对硬盘的大量访问，创建和查询之间不会相互干扰。其实仔细想想，对于一个全文检索的功能来说，数据字段改动的可能性很小，而全文检索对性能的要求却很高，所以开发者才会做出这样的决定。
+  既然实现了倒排索引，那当我们新添加一个索引时，怎么样才能把索引最终变得可搜索呢，答案就是建多个索引，elasticsearch使用了底层lucene的per-segment search的概念，也就是说索引在硬盘中是以段的形式存在的，当我们新建索引时，es首先作为一个段把它保存在内存中，之后该段就会作为一个新的段保存到硬盘中，之后这些文档就可以被搜索到了。因为数据保存在内存中的性能往往比保存在硬盘中高得多，要一次性把整个段保存到硬盘中，当数据量大时对性能的影响是极大的。还好es为我们提供了一种更高效的方式，通过它底层的lucene写入打开功能，es默认每隔一秒，就会把内存段中的内容保存到硬盘的相应段中，这些数据就可以检索到了（当初写测试的时候老跑不过，花了好长时间排错，其实只需要强制刷新段到硬盘就可以了），在查询的时候，es会遍历每个段来找到需要的记录。
+  当然，如果每秒都创建一个新的段，那es中段的数据会多到不可想象，不用说，对性能和硬盘空间也有极大的影响。es在后台会自动的合并选择小的段来合并成大的段，生成大的段后，小的段就会被删除。
+  综上可以看出，es为了实现一个高性能，高可扩展的搜索引擎，它内部做了很多的权衡和优化，上面所说的只是其中的一小部分，但从中可以看到我们在软件开发过程中，总是会面临许多选择，大到使用什么数据库，小到循环是用for还是while，我们都应遵循开发目标是什么，需求是什么，而不是盲目的追逐新的技术。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Elasticsearch 简单介绍</title>
+      <link>https://steinliber.github.io/post/elasticsearch_intorduce/</link>
+      <pubDate>Fri, 30 Dec 2016 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/elasticsearch_intorduce/</guid>
+      <description>
+
+&lt;p&gt;elasticsearch是一个分布式的全文检索引擎，所谓分布式指的是elasticsearch可以很方便的水平扩容，当你觉得一个elasticsearch节点满足不了你的需求时，可以直接将新的elasticsearch节点加入这个集群来提供更高效的服务。而全文检索指的就你查找一个词，所有与这个词相关的文章都会按照相关性顺序返回。&lt;/p&gt;
+
+&lt;h2 id=&#34;elasticsearch-全文检索的实现原理&#34;&gt;elasticsearch 全文检索的实现原理&lt;/h2&gt;
+
+&lt;p&gt;传统的数据库如果想找到数据里面包含特定值的那些记录，基本上就要遍历所有相关的记录进行比较，当数据量不是很大时，对性能影响不是很大，但当数据量达到千万级甚至亿万级时，这样遍历不仅耗时间，而且会消耗大量系统资源。而且这样也找不到含近义词的数据，更别说按相关度排序了。那elasticsearch是如何解决这个问题的呢?
+没错，就是倒排索引，既然从文章中找词效果不是很理想，那我们可以倒着来&amp;ndash;&amp;gt;根据词来找到文章，这样一切就迎刃而解了。当我们把一篇文章保存在elasticsearch中时，它会先把这篇文章分解成一个个的词*（通过分词器，用户可自行选择），然后创建并维护这些词到文章的映射关系，当在elasticsearch中进行查询时也是一样，它会把查询的词分成每个独立的词，在维护的映射关系中查找得到对应的文章返回。
+比如说我现在在elasticsearch中保存了下面的一句话，该纪录的id是123（好吧，我是有点小文艺的;）
+&amp;gt; 当风停住脚步时候，已经轮回了几个春秋.&lt;/p&gt;
+
+&lt;p&gt;这句话会被拆成
+&amp;gt;  风， 停住， 脚步， 脚， 步， 时候， 已经， 轮回， 轮， 回了， 回， 几个， 春秋
+&amp;gt;     在elasticsearch中储存的映射关系如下（简化版，es中会有更多相关的内容，如词在文章中出现的次数也会保存，这是为了计算相关性）&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;词&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;文章在elasticsearch中保存的id&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;风&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;停住&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;脚步&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&amp;hellip;&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;123&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;这样我们就可以在elasticsearch中进行查询了，比如说我现在要查询“风和春秋”，elasticsearch就会在查询时把它拆分成
+&amp;gt; 风，春秋&lt;/p&gt;
+
+&lt;p&gt;之后在elasticsearch的映射关系中找这两个词，找到对应的文章后通过相关度算法*（和词在文章中出现的次数，文章的长度等因素有关）返回我们所想搜索的结果，这样我们就可以获取到所要搜索的记录了。当然es内部的处理不会那么简单，但对es的单个节点来说，运行的思路就是这样。
+这篇文章对elasticsearch进行了简单介绍，在下一部分，我会讲讲elasticsearch中为了实现倒排索引而与传统数据库有所不同的地方。&lt;/p&gt;
+</description>
+    </item>
+    
   </channel>
 </rss>
