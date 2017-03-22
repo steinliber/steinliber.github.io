@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title> Elasticsearch 简单介绍 &middot; Stein&#39;s World </title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="generator" content="Hugo 0.19" />
+
+
+<link rel="stylesheet" href="https://steinliber.github.io/css/vec.css">
+
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+<link rel="shortcut icon" href="/favicon.ico">
+
+
+<link href="" rel="alternate" type="application/rss+xml" title="Stein&#39;s World" />
+
+</head>
+
+<body>
+  <header>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://steinliber.github.io">/home/stein&#39;s world</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/about">~/about</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/booklist">~/booklist</a>
+      </li>
+      
+      
+      <li class="pull-left current">
+        <a href="/post">~/post</a>
+      </li>
+      
+  
+      <li class="pull-right"><a href=""><i class="fa fa-rss"></i></a></li>
+    </ul>
+  </nav>
+</header>
+  <div class="content">
+    
+    
+    <section class="post">
+      <h1 class="post-title"><a href="https://steinliber.github.io/post/elasticsearch_intorduce/">Elasticsearch 简单介绍</a></h1>
+      <span class="post-date">Dec 30, 2016 </span>
+      <div class="post-content">
+        
+
+<p>elasticsearch是一个分布式的全文检索引擎，所谓分布式指的是elasticsearch可以很方便的水平扩容，当你觉得一个elasticsearch节点满足不了你的需求时，可以直接将新的elasticsearch节点加入这个集群来提供更高效的服务。而全文检索指的就你查找一个词，所有与这个词相关的文章都会按照相关性顺序返回。</p>
+
+<h2 id="elasticsearch-全文检索的实现原理">elasticsearch 全文检索的实现原理</h2>
+
+<p>传统的数据库如果想找到数据里面包含特定值的那些记录，基本上就要遍历所有相关的记录进行比较，当数据量不是很大时，对性能影响不是很大，但当数据量达到千万级甚至亿万级时，这样遍历不仅耗时间，而且会消耗大量系统资源。而且这样也找不到含近义词的数据，更别说按相关度排序了。那elasticsearch是如何解决这个问题的呢?
+没错，就是倒排索引，既然从文章中找词效果不是很理想，那我们可以倒着来&ndash;&gt;根据词来找到文章，这样一切就迎刃而解了。当我们把一篇文章保存在elasticsearch中时，它会先把这篇文章分解成一个个的词*（通过分词器，用户可自行选择），然后创建并维护这些词到文章的映射关系，当在elasticsearch中进行查询时也是一样，它会把查询的词分成每个独立的词，在维护的映射关系中查找得到对应的文章返回。
+比如说我现在在elasticsearch中保存了下面的一句话，该纪录的id是123（好吧，我是有点小文艺的;）
+&gt; 当风停住脚步时候，已经轮回了几个春秋.</p>
+
+<p>这句话会被拆成
+&gt;  风， 停住， 脚步， 脚， 步， 时候， 已经， 轮回， 轮， 回了， 回， 几个， 春秋
+&gt;     在elasticsearch中储存的映射关系如下（简化版，es中会有更多相关的内容，如词在文章中出现的次数也会保存，这是为了计算相关性）</p>
+
+<table>
+<thead>
+<tr>
+<th>词</th>
+<th align="center">文章在elasticsearch中保存的id</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>风</td>
+<td align="center">123</td>
+</tr>
+
+<tr>
+<td>停住</td>
+<td align="center">123</td>
+</tr>
+
+<tr>
+<td>脚步</td>
+<td align="center">123</td>
+</tr>
+
+<tr>
+<td>&hellip;</td>
+<td align="center">123</td>
+</tr>
+</tbody>
+</table>
+
+<p>这样我们就可以在elasticsearch中进行查询了，比如说我现在要查询“风和春秋”，elasticsearch就会在查询时把它拆分成
+&gt; 风，春秋</p>
+
+<p>之后在elasticsearch的映射关系中找这两个词，找到对应的文章后通过相关度算法*（和词在文章中出现的次数，文章的长度等因素有关）返回我们所想搜索的结果，这样我们就可以获取到所要搜索的记录了。当然es内部的处理不会那么简单，但对es的单个节点来说，运行的思路就是这样。
+这篇文章对elasticsearch进行了简单介绍，在下一部分，我会讲讲elasticsearch中为了实现倒排索引而与传统数据库有所不同的地方。</p>
+
+      </div>
+    </section>
+    
+    <section class="pagination clearfix">
+       
+      
+      <a class="btn next " href="https://steinliber.github.io/post/webhooks-dos-and-dont-s-what-we-learned-after-integrating-100-apis/"> Webhook 该做和不该做的: 我们在整合超过 100 个 API 中所学到的[译] </a> 
+      
+    </section>
+    
+    
+  </div>
+  
+  <footer>
+  <div class="footer-info">
+    <p>
+      <a href="mailto:steinliber@gmail.com?subject="><i class="fa fa-envelope-o"></i> steinliber@gmail.com </a>
+      {
+        <a href="https://gohugo.io/" title="Hugo :: A fast and modern static website engine">Hugo 0.19</a>,
+        <a href="https://github.com/IvanChou/yii.im" title="vec">Vec</a> 
+      }
+      {<a href="http://creativecommons.org/licenses/by-nc-nd/3.0/" title="CC BY-NC-ND 3.0">CC BY-NC-ND 3.0</a>}
+    </p>
+  </div>
+</footer>
+  
+  <script src="https://steinliber.github.io/js/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+
+</body>
+
+</html>

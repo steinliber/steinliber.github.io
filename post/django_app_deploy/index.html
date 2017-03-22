@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title> 一个django APP 的服务器部署 &middot; Stein&#39;s World </title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="generator" content="Hugo 0.19" />
+
+
+<link rel="stylesheet" href="https://steinliber.github.io/css/vec.css">
+
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+<link rel="shortcut icon" href="/favicon.ico">
+
+
+<link href="" rel="alternate" type="application/rss+xml" title="Stein&#39;s World" />
+
+</head>
+
+<body>
+  <header>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://steinliber.github.io">/home/stein&#39;s world</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/about">~/about</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/booklist">~/booklist</a>
+      </li>
+      
+      
+      <li class="pull-left current">
+        <a href="/post">~/post</a>
+      </li>
+      
+  
+      <li class="pull-right"><a href=""><i class="fa fa-rss"></i></a></li>
+    </ul>
+  </nav>
+</header>
+  <div class="content">
+    
+    
+    <section class="post">
+      <h1 class="post-title"><a href="https://steinliber.github.io/post/django_app_deploy/">一个django APP 的服务器部署</a></h1>
+      <span class="post-date">Feb 23, 2017 </span>
+      <div class="post-content">
+        
+
+<p>相信很多后端开发者应该经历过代码在本机上跑的好好的，但一部署到服务器上就出差错了，那其中到底发生了什么?下面我就来扒一扒我在部署一个django应用过程中的心得体会。</p>
+
+<h3 id="代码">代码</h3>
+
+<p>要运行一个app最重要的就是代码，我们需要先把代码放到服务器上。把代码传到部署服务器上有很多办法，目前主流的是在部署服务器上使用git来拉取代码，这样就能在服务器上进行代码的版本控制。当然也可以用scp拷贝到服务器上（不推荐）</p>
+
+<h2 id="依赖">依赖</h2>
+
+<p>一个app要满足所有的依赖关系以后，才能够正常运行，对于django应用至少django包是必不可少的。在python中可以通过 requirements.txt 来安装这些依赖。一般来说要为每个应用创建一个单独的虚拟环境，这样可以防止一个服务器上多个app之间依赖的互相影响。</p>
+
+<h2 id="环境">环境</h2>
+
+<p>这里的环境指的是app的运行配置，包括数据库链接的地址，SECRET KEY这些配置，本地环境下的环境配置和线上的一般是不一样的。在12-factor中推荐用环境变量来实现环境的相关配置，django可以使用django-environ来实现。到这一步为止，线上服务器的这个app应该可以直接在3服务器上运行了也就是自启动应用。</p>
+
+<h2 id="服务">服务</h2>
+
+<p>上面的应用是已经可以启动了，但如果你连的数据库是本地，那运行中肯定是会报错的，这些app运行过程中所依赖的服务我把它称为依赖服务，还有像logstash日志收集服务，uwsgi服务器服务，supervisor进程管理服务等，这些对于一个app的运行来说并非必要的服务我把它称为附加服务。对于一个django应用，可以用uwsgi来替代django内置的服务器，用nginx来做反向代理和对外的服务器，用logstash来收集运行过程中的日志，用supervisor来管理其它的进程。
+##综述
+其实对于一个线上的应用来说，可以这样说 app=代码+依赖+环境， 而一个server=app+服务，这样来看我们就可以把一个django应用的部署抽象出来，使用像saltstack的工具来部署大多数的django应用，最近在写一个Django 应用的自动部署平台，下次可以分享一下。</p>
+
+      </div>
+    </section>
+    
+    <section class="pagination clearfix">
+      
+      <a class="btn previous " href="https://steinliber.github.io/post/async/"> Python 中的协程 </a> 
+       
+      
+      <a class="btn next " href="https://steinliber.github.io/post/online-migrations/"> 在线进行大规模的数据迁移[译] </a> 
+      
+    </section>
+    
+    
+  </div>
+  
+  <footer>
+  <div class="footer-info">
+    <p>
+      <a href="mailto:steinliber@gmail.com?subject="><i class="fa fa-envelope-o"></i> steinliber@gmail.com </a>
+      {
+        <a href="https://gohugo.io/" title="Hugo :: A fast and modern static website engine">Hugo 0.19</a>,
+        <a href="https://github.com/IvanChou/yii.im" title="vec">Vec</a> 
+      }
+      {<a href="http://creativecommons.org/licenses/by-nc-nd/3.0/" title="CC BY-NC-ND 3.0">CC BY-NC-ND 3.0</a>}
+    </p>
+  </div>
+</footer>
+  
+  <script src="https://steinliber.github.io/js/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+
+</body>
+
+</html>
