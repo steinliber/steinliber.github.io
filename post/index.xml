@@ -10,132 +10,6 @@
     <atom:link href="https://steinliber.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Python 中的鸭子类型</title>
-      <link>https://steinliber.github.io/post/python_duck/</link>
-      <pubDate>Sun, 24 Dec 2017 13:50:46 +0200</pubDate>
-      
-      <guid>https://steinliber.github.io/post/python_duck/</guid>
-      <description>&lt;blockquote&gt;
-&lt;p&gt;‘那只东西呱呱的叫，有扁扁的嘴巴，走起路来还外八，对！它就是只鸭子’&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;p&gt;基本定义
-对于熟悉python的开发者来说，相信对于python的鸭子类型比较熟悉，所谓鸭子类型，在维基百科中的准确定义是‘是动态类型的一种风格。在这种风格中，一个对象有效的语义，不是由继承自特定的类或实现特定的接口，而是由&amp;rdquo;当前方法和属性的集合&amp;rdquo;决定’。&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;python中的具体实现
-下面的代码就是一个简单的鸭子类型&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;class duck():
-    def walk(self):
-        print(&#39;I walk like a duck&#39;)
-    def swim(self):
-        print(&#39;i swim like a duck&#39;)
-
-class person():
-    def walk(self):
-        print(&#39;this one walk like a duck&#39;) 
-    def swim(self):
-        print(&#39;this man swim like a duck&#39;)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;对于一个鸭子类型来说，我们并不关心这个对象的类型本身或是这个类继承，而是这个类是如何被使用的。我们可以通过下面的代码来调用这些类的方法。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;def watch_duck(animal):
-    animal.walk()
-    animal.swim()
-
-small_duck = duck()
-watch_duck(small_duck)
-
-output &amp;gt;&amp;gt; 
-I walk like a duck
-i swim like a duck
-
-
-duck_like_man = person()
-watch_duck(duck_like_man)
-
-output &amp;gt;&amp;gt; 
-this one walk like a duck
-this man swim like a duck
-
-
-class Lame_Foot_Duck():
-    def swim(self):
-        print(&#39;i am lame but i can swim&#39;)
-
-lame_duck = Lame_Foot_Duck()
-watch_duck(lame_duck)
-
-output &amp;gt;&amp;gt;
-AttributeError: Lame_Foot_Duck instance has no attribute &#39;walk&#39;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;watch_duck函数接收这个类的对象，然后并没有检查对象的类型，而是直接调用这个对象的走和游的方法，如果所需要的方法不存在就报错。具体在python中鸭子类型的体现如下面的代码所示&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;class CollectionClass():
-    lists = [1,2,3,4]
-    def __getitem__(self, index):
-        return self.lists[index]
-
-iter_able_object = CollectionClass()
-
-class Another_iterAbleClass():
-    lists=[1,2,3,4]
-    list_position = -1
-
-    def __iter__(self):
-        return self
-
-    def next(self): #还有更简单的实现，使用生成器或迭代器什么的:)
-        self.list_position += 1
-        if self.list_position &amp;gt;3:
-            raise StopIteration
-        return self.lists[self.list_position]
-
-another_iterable_object=Another_iterAbleClass()
-
-print(iter_able_object[1])
-print(iter_able_object[1:3])
-output&amp;gt;&amp;gt;
-2
-[2, 3]
-
-another_iterable_object[2]
-output&amp;gt;&amp;gt;
-Traceback (most recent call last):
-  File &amp;quot;/Users/steinliber/a.py&amp;quot;, line 32, in &amp;lt;module&amp;gt;
-    another_iterable_object[2]
-TypeError: &#39;Another_iterAbleClass&#39; object does not support indexing
-
-print(next(another_iterable_object))
-output&amp;gt;&amp;gt;
-1
-print(next(another_iterable_object))
-output&amp;gt;&amp;gt;
-2
-
-print(next(iter_able_object))
-output&amp;gt;&amp;gt;
-Traceback (most recent call last):
-  File &amp;quot;/Users/steinliber/a.py&amp;quot;, line 29, in &amp;lt;module&amp;gt;
-    print(next(iter_able_object))
-TypeError: IterAbleClass object is not an iterator
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;在python把上述代码的实现方法叫做protocol（协议），这些protocol可以看作是通知型的接口，它规定了调用方使用该功能要调用对象的哪些方法，被调用方要实现哪些方法才能完成这个功能。它和java中的接口区别在于java中的接口功能实现需要通过继承，继承的类必须实现接口中的所有的抽象方法，所以在Java中强调的是类型的概念，而python中的protocol更多的是通知性的，一个函数规定要实现某个功能需要调用传入对象的哪些方法，所有实现这些方法的类就可以实现这个功能。&lt;/p&gt;
-
-&lt;p&gt;具体从上面两个类来说，第一个类实现了__getitem__方法,那python的解释器就会把它当做一个collection，就可以在这个类的对象上使用切片,获取子项等方法，第二个类实现了__iter__和next方法，python就会认为它是一个iterator，就可以在这个类的对象上通过循环来获取各个子项。一个类可以实现它有能力实现的方法，并只能被用于在它有意义的情况下。&lt;/p&gt;
-
-&lt;p&gt;这两个类和上面的鸭子类相比较，其实用于切边的[](它其实调用的是python的slice函数)和用于循环的iter()就相当于watch_duck函数，这些函数都接收任意类的对象，并调用实现功能所需要的对象中的方法来实现功能，若该函数中调用的方法对象里面不存在，就报错。&lt;/p&gt;
-
-&lt;p&gt;从上面可以看出，python鸭子类型的灵活性在于它关注的是这个所调用的对象是如何被使用的，而没有关注对象类型的本身是什么。所以在python中使用isinstance来判断传入参数的类型是不提倡的，更pythonic的方法是直接使用传入的参数，通过try，except来处理传入参数不符合要求的情况。我们应该通过传入对象的能力而不是传入对象的类型来使用该对象。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
       <title>在线进行大规模的数据迁移[译]</title>
       <link>https://steinliber.github.io/post/online-migrations/</link>
       <pubDate>Fri, 24 Feb 2017 13:50:46 +0200</pubDate>
@@ -632,6 +506,132 @@ Es处理的速度如果能高于请求建立索引的速度，那自然不会有
 
 &lt;p&gt;之后在elasticsearch的映射关系中找这两个词，找到对应的文章后通过相关度算法*（和词在文章中出现的次数，文章的长度等因素有关）返回我们所想搜索的结果，这样我们就可以获取到所要搜索的记录了。当然es内部的处理不会那么简单，但对es的单个节点来说，运行的思路就是这样。
 这篇文章对elasticsearch进行了简单介绍，在下一部分，我会讲讲elasticsearch中为了实现倒排索引而与传统数据库有所不同的地方。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Python 中的鸭子类型</title>
+      <link>https://steinliber.github.io/post/python_duck/</link>
+      <pubDate>Sat, 24 Dec 2016 13:50:46 +0200</pubDate>
+      
+      <guid>https://steinliber.github.io/post/python_duck/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;‘那只东西呱呱的叫，有扁扁的嘴巴，走起路来还外八，对！它就是只鸭子’&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;基本定义
+对于熟悉python的开发者来说，相信对于python的鸭子类型比较熟悉，所谓鸭子类型，在维基百科中的准确定义是‘是动态类型的一种风格。在这种风格中，一个对象有效的语义，不是由继承自特定的类或实现特定的接口，而是由&amp;rdquo;当前方法和属性的集合&amp;rdquo;决定’。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;python中的具体实现
+下面的代码就是一个简单的鸭子类型&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;class duck():
+    def walk(self):
+        print(&#39;I walk like a duck&#39;)
+    def swim(self):
+        print(&#39;i swim like a duck&#39;)
+
+class person():
+    def walk(self):
+        print(&#39;this one walk like a duck&#39;) 
+    def swim(self):
+        print(&#39;this man swim like a duck&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对于一个鸭子类型来说，我们并不关心这个对象的类型本身或是这个类继承，而是这个类是如何被使用的。我们可以通过下面的代码来调用这些类的方法。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;def watch_duck(animal):
+    animal.walk()
+    animal.swim()
+
+small_duck = duck()
+watch_duck(small_duck)
+
+output &amp;gt;&amp;gt; 
+I walk like a duck
+i swim like a duck
+
+
+duck_like_man = person()
+watch_duck(duck_like_man)
+
+output &amp;gt;&amp;gt; 
+this one walk like a duck
+this man swim like a duck
+
+
+class Lame_Foot_Duck():
+    def swim(self):
+        print(&#39;i am lame but i can swim&#39;)
+
+lame_duck = Lame_Foot_Duck()
+watch_duck(lame_duck)
+
+output &amp;gt;&amp;gt;
+AttributeError: Lame_Foot_Duck instance has no attribute &#39;walk&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;watch_duck函数接收这个类的对象，然后并没有检查对象的类型，而是直接调用这个对象的走和游的方法，如果所需要的方法不存在就报错。具体在python中鸭子类型的体现如下面的代码所示&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class CollectionClass():
+    lists = [1,2,3,4]
+    def __getitem__(self, index):
+        return self.lists[index]
+
+iter_able_object = CollectionClass()
+
+class Another_iterAbleClass():
+    lists=[1,2,3,4]
+    list_position = -1
+
+    def __iter__(self):
+        return self
+
+    def next(self): #还有更简单的实现，使用生成器或迭代器什么的:)
+        self.list_position += 1
+        if self.list_position &amp;gt;3:
+            raise StopIteration
+        return self.lists[self.list_position]
+
+another_iterable_object=Another_iterAbleClass()
+
+print(iter_able_object[1])
+print(iter_able_object[1:3])
+output&amp;gt;&amp;gt;
+2
+[2, 3]
+
+another_iterable_object[2]
+output&amp;gt;&amp;gt;
+Traceback (most recent call last):
+  File &amp;quot;/Users/steinliber/a.py&amp;quot;, line 32, in &amp;lt;module&amp;gt;
+    another_iterable_object[2]
+TypeError: &#39;Another_iterAbleClass&#39; object does not support indexing
+
+print(next(another_iterable_object))
+output&amp;gt;&amp;gt;
+1
+print(next(another_iterable_object))
+output&amp;gt;&amp;gt;
+2
+
+print(next(iter_able_object))
+output&amp;gt;&amp;gt;
+Traceback (most recent call last):
+  File &amp;quot;/Users/steinliber/a.py&amp;quot;, line 29, in &amp;lt;module&amp;gt;
+    print(next(iter_able_object))
+TypeError: IterAbleClass object is not an iterator
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在python把上述代码的实现方法叫做protocol（协议），这些protocol可以看作是通知型的接口，它规定了调用方使用该功能要调用对象的哪些方法，被调用方要实现哪些方法才能完成这个功能。它和java中的接口区别在于java中的接口功能实现需要通过继承，继承的类必须实现接口中的所有的抽象方法，所以在Java中强调的是类型的概念，而python中的protocol更多的是通知性的，一个函数规定要实现某个功能需要调用传入对象的哪些方法，所有实现这些方法的类就可以实现这个功能。&lt;/p&gt;
+
+&lt;p&gt;具体从上面两个类来说，第一个类实现了__getitem__方法,那python的解释器就会把它当做一个collection，就可以在这个类的对象上使用切片,获取子项等方法，第二个类实现了__iter__和next方法，python就会认为它是一个iterator，就可以在这个类的对象上通过循环来获取各个子项。一个类可以实现它有能力实现的方法，并只能被用于在它有意义的情况下。&lt;/p&gt;
+
+&lt;p&gt;这两个类和上面的鸭子类相比较，其实用于切边的[](它其实调用的是python的slice函数)和用于循环的iter()就相当于watch_duck函数，这些函数都接收任意类的对象，并调用实现功能所需要的对象中的方法来实现功能，若该函数中调用的方法对象里面不存在，就报错。&lt;/p&gt;
+
+&lt;p&gt;从上面可以看出，python鸭子类型的灵活性在于它关注的是这个所调用的对象是如何被使用的，而没有关注对象类型的本身是什么。所以在python中使用isinstance来判断传入参数的类型是不提倡的，更pythonic的方法是直接使用传入的参数，通过try，except来处理传入参数不符合要求的情况。我们应该通过传入对象的能力而不是传入对象的类型来使用该对象。&lt;/p&gt;
 </description>
     </item>
     
