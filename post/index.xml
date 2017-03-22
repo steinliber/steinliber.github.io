@@ -213,10 +213,10 @@ end
     
     <item>
       <title>Python 中的协程</title>
-      <link>https://steinliber.github.io/post/async/</link>
+      <link>https://steinliber.github.io/post/python_async/</link>
       <pubDate>Mon, 23 Jan 2017 13:50:46 +0200</pubDate>
       
-      <guid>https://steinliber.github.io/post/async/</guid>
+      <guid>https://steinliber.github.io/post/python_async/</guid>
       <description>&lt;blockquote&gt;
 &lt;blockquote&gt;
 &lt;p&gt;并发描述的是一个程序是否被分成了多个可执行片段，使得每个片段都可以独立运行,不同执行片段通过通信来进行协调。&lt;/p&gt;
