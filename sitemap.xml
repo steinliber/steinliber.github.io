@@ -46,12 +46,21 @@
   </url>
   
   <url>
+    <loc>https://steinliber.github.io/post/https:h5.koudaitong.com:v2:common:YzAuth:get.html/</loc>
+  </url>
+  
+  <url>
     <loc>https://steinliber.github.io/booklist/test/</loc>
   </url>
   
   <url>
     <loc>https://steinliber.github.io/tags/api/</loc>
     <lastmod>2016-12-30T20:32:46+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://steinliber.github.io/tags/book/</loc>
     <priority>0</priority>
   </url>
   
